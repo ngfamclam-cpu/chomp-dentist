@@ -164,6 +164,10 @@ select, .names input {
     <h1>Chomp <span>Dentist</span></h1>
     <p class="tag">Press a tooth. Pass it on. Don't get chomped!</p>
   </header>
+  <div class="bar" id="installBar" hidden style="grid-template-columns:1fr auto;align-items:center">
+    <span id="installText" style="font-weight:800">Put Chomp Dentist on your home screen</span>
+    <button class="btn" id="installBtn" type="button">Install</button>
+  </div>
 
   <div class="bar">
     <div class="barTop">
@@ -748,6 +752,19 @@ select, .names input {
 </script>
 <script>
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+(function () {
+  const bar = document.getElementById("installBar"), btn = document.getElementById("installBtn"), txt = document.getElementById("installText");
+  const installed = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (installed) return;
+  let promptEvt = null;
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); promptEvt = e; bar.hidden = false; });
+  btn.addEventListener("click", async () => {
+    if (promptEvt) { promptEvt.prompt(); const r = await promptEvt.userChoice; promptEvt = null; if (r.outcome === "accepted") bar.hidden = true; }
+    else { txt.textContent = "Tap the Share button below, then \"Add to Home Screen\"."; btn.hidden = true; }
+  });
+  window.addEventListener("appinstalled", () => { bar.hidden = true; });
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) bar.hidden = false;
+})();
 </script>
 </body>
 </html>
